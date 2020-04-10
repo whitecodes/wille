@@ -3,19 +3,19 @@ let pathName = window.location.pathname;
 
 //main
 var hashTag = location.hash ? location.hash.split('#/')[1] : false;
-if(!hashTag){
+if (!hashTag) {
     //url to catalog
 
     var path = baseUrl + pathName;
     var paths = pathName.split("/");
-    var keyTag = paths[paths.length-2];
-    var cataTag = "cata_" + paths[paths.length-2];
+    var keyTag = paths[paths.length - 2];
+    var cataTag = "cata_" + paths[paths.length - 2];
 
-    if(judgeModify(keyTag,path) || !localStorage[cataTag])
-        generate(keyTag,cataTag,path,true);
+    if (judgeModify(keyTag, path) || !localStorage[cataTag])
+        generate(keyTag, cataTag, path, true);
 
     inCatalog(localStorage[cataTag]);
-    $(".back").attr("href","/");
+    $(".back").attr("href", "/");
     $(".prev").hide();
     $(".next").hide();
 
@@ -25,32 +25,32 @@ if(!hashTag){
 }
 
 //hash change event
-window.addEventListener("hashchange", function() {
+window.addEventListener("hashchange", function () {
     var hashTag = location.hash ? location.hash.split('#/')[1] : false;
-    if(hashTag){
+    if (hashTag) {
         inPost(hashTag);
     }
 });
 
 //generate markdown body include post & catalog
-function generate(key,value,path,isCata = false) {
+function generate(key, value, path, isCata = false) {
     var dataType = "text";
-    if(isCata)
+    if (isCata)
         dataType = "json";
 
     $.ajax({
-        url: path ,
+        url: path,
         type: "GET",
         dataType: dataType,
         async: false,
         headers: {
-            'Accept':"application/vnd.github.v3.html"
+            'Accept': "application/vnd.github.v3.html"
         },
-        success:function(res,code,xhr) {
+        success: function (res, code, xhr) {
             localStorage[key] = xhr.getResponseHeader("Last-Modified");
-            if(isCata){
+            if (isCata) {
                 localStorage[value] = getCata(res);
-            } else{
+            } else {
                 localStorage[value] = res;
             }
         }
@@ -59,11 +59,11 @@ function generate(key,value,path,isCata = false) {
 
 //get catalog data
 function getCata(res) {
-    var data = jsonSort(res,"name",false);
+    var data = jsonSort(res, "name", false);
 
     var arr = [];
     data.forEach(item => {
-        if(item.name !== "index.html" && item.name !== "list.md"){
+        if (item.name !== "index.html" && item.name !== "list.md") {
             arr.push(item.name.split(".md")[0]);
         }
     });
@@ -74,7 +74,7 @@ function getCata(res) {
 //in catalog page
 function inCatalog(arr) {
     arr.split(",").forEach(item => {
-        var tag_a= document.createElement("a");
+        var tag_a = document.createElement("a");
         var url = pathName + "#/" + item;
 
         tag_a.setAttribute("href", url);
@@ -85,44 +85,44 @@ function inCatalog(arr) {
 }
 
 //in post page
-function inPost(hashTag){
+function inPost(hashTag) {
     var path = baseUrl + pathName + hashTag + ".md";
     var postTag = "post_" + hashTag;
 
-    if(judgeModify(hashTag,path) || !localStorage[postTag])
-        generate(hashTag,postTag,path);
+    if (judgeModify(hashTag, path) || !localStorage[postTag])
+        generate(hashTag, postTag, path);
 
     $("div.markdown-body").html(localStorage[postTag]);
 
-    $(".back").attr("href",pathName);
+    $(".back").attr("href", pathName);
     var paths = pathName.split("/");
-    var cataTag = "cata_" + paths[paths.length-2];
-    var keyTag = paths[paths.length-2];
+    var cataTag = "cata_" + paths[paths.length - 2];
+    var keyTag = paths[paths.length - 2];
 
     //if not, do get catalog
-    if(!localStorage[cataTag]){
+    if (!localStorage[cataTag]) {
         path = baseUrl + pathName;
-        generate(keyTag,cataTag,path,true);
+        generate(keyTag, cataTag, path, true);
     }
 
     var arr = localStorage[cataTag].split(",");
-    for(var i=0;i<arr.length;i++){
-        if(hashTag === arr[i]){
-            if(i === 0){
+    for (var i = 0; i < arr.length; i++) {
+        if (hashTag === arr[i]) {
+            if (i === 0) {
                 $(".prev").hide();
                 $(".next").show();
-                $(".next").attr("href",pathName + "#/" + arr[i+1]);
+                $(".next").attr("href", pathName + "#/" + arr[i + 1]);
                 break;
-            } else if(i === arr.length - 1){
+            } else if (i === arr.length - 1) {
                 $(".next").hide();
                 $(".prev").show();
-                $(".prev").attr("href",pathName + "#/" + arr[i-1]);
+                $(".prev").attr("href", pathName + "#/" + arr[i - 1]);
                 break;
             } else {
                 $(".next").show();
                 $(".prev").show();
-                $(".next").attr("href",pathName + "#/" + arr[i+1]);
-                $(".prev").attr("href",pathName + "#/" + arr[i-1]);
+                $(".next").attr("href", pathName + "#/" + arr[i + 1]);
+                $(".prev").attr("href", pathName + "#/" + arr[i - 1]);
                 break;
             }
         }
@@ -130,14 +130,14 @@ function inPost(hashTag){
 }
 
 //conditional requests
-function judgeModify(key,path) {
-    if(localStorage[key]) {
+function judgeModify(key, path) {
+    if (localStorage[key]) {
         $.ajax({
             url: path,
-            type:"head",
+            type: "head",
             async: false,
-            success:function(res,code,xhr) {
-                if(localStorage[key] !== xhr.getResponseHeader("Last-Modified"))
+            success: function (res, code, xhr) {
+                if (localStorage[key] !== xhr.getResponseHeader("Last-Modified"))
                     return true;
             }
         })
@@ -149,14 +149,14 @@ function judgeModify(key,path) {
 
 //sort
 function jsonSort(array, field, reverse) {
-    if(array.length < 2 || !field || typeof array[0] !== "object") return array;
-    if(typeof array[0][field] === "number") {
-        array.sort(function(x, y) { return x[field] - y[field]});
+    if (array.length < 2 || !field || typeof array[0] !== "object") return array;
+    if (typeof array[0][field] === "number") {
+        array.sort(function (x, y) { return x[field] - y[field] });
     }
-    if(typeof array[0][field] === "string") {
-        array.sort(function(x, y) { return x[field].localeCompare(y[field])});
+    if (typeof array[0][field] === "string") {
+        array.sort(function (x, y) { return x[field].localeCompare(y[field]) });
     }
-    if(reverse) {
+    if (reverse) {
         array.reverse();
     }
     return array;
